@@ -1,20 +1,74 @@
-import React from "react";
+import axios from "axios";
+import React, { useState } from "react";
+import { useHistory } from "react-router-dom";
 
 const Login = () => {
-  // make a post request to retrieve a token from the api
-  // when you have handled the token, navigate to the BubblePage route
+  const [state, setState] = useState({
+    credentials: {
+      username: "",
+      password: "",
+    },
+  });
+  const [err, setErr] = useState("");
+  let history = useHistory();
 
-  const error = "";
-  //replace with error state
+  const handleChange = (e) => {
+    setState({
+      credentials: { ...state.credentials, [e.target.name]: e.target.value },
+    });
+  };
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+
+    axios
+      .post("http://localhost:5000/api/login", state.credentials)
+      .then((res) => {
+        localStorage.setItem("token", res.data.payload);
+        history.push("/bubblepage");
+      })
+      .catch((error) => {
+        console.log("Login Axios catch", error);
+
+        setErr(error);
+      });
+  };
 
   return (
     <div>
       <h1>Welcome to the Bubble App!</h1>
       <div data-testid="loginForm" className="login-form">
         <h2>Build login form here</h2>
+        <form onSubmit={handleLogin}>
+          <label>
+            Username:
+            <input
+              type="text"
+              id="username"
+              name="username"
+              onChange={handleChange}
+              value={state.username}
+            ></input>
+          </label>
+          <label>
+            Password:
+            <input
+              type="text"
+              id="password"
+              name="password"
+              onChange={handleChange}
+              value={state.password}
+            ></input>
+          </label>
+          <button id="submit">Login</button>
+        </form>
       </div>
 
-      <p id="error" className="error">{error}</p>
+      {err && (
+        <p id="error" className="error">
+          {"Incorrect Username or Password"}
+        </p>
+      )}
     </div>
   );
 };
